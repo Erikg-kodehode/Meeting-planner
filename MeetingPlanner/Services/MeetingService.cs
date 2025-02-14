@@ -1,220 +1,131 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Text.Json;
 using MeetingPlanner.Models;
 
 namespace MeetingPlanner.Services
 {
     public class MeetingService
     {
-        private readonly List<Meeting> møter = new();
-        private readonly string loggFil = "møter.json"; // JSON-fil for lagring
+        private readonly List<Meeting> meetings;
+        private readonly MeetingStorageService storageService;
+        private readonly MeetingInputService inputService;
 
-        public void LeggTilMøte()
+        public MeetingService()
+        {
+            storageService = new MeetingStorageService();
+            inputService = new MeetingInputService();
+            meetings = storageService.LoadMeetings();
+        }
+
+        public void AddMeeting()
         {
             Console.WriteLine("\n📅 Nytt møte");
 
             Console.Write("Tittel: ");
-            string tittel = Console.ReadLine()?.Trim() ?? "";
+            string title = Console.ReadLine()?.Trim() ?? "";
 
             Console.Write("Sted: ");
-            string sted = Console.ReadLine()?.Trim() ?? "";
+            string location = Console.ReadLine()?.Trim() ?? "";
 
-            DateTime startTid = HentTidOgDato("Starttid (HH:mm eller 4 siffer, f.eks. 1400): ", "Startdato (dd.MM.yyyy eller 'i dag'): ");
+            DateTime startTime = inputService.GetTimeAndDate("Starttid (HH:mm eller 4 siffer, f.eks. 1400): ", "Startdato (dd.MM.yyyy eller 'i dag'): ");
 
-            // Slutttid kan være tom, da blir møtet "uendelig"
-            DateTime? sluttTid = HentTidEllerUendelig("Slutttid (HH:mm eller 4 siffer, f.eks. 1500, eller blank for uendelig): ", "Sluttdato (dd.MM.yyyy eller 'i dag'): ", startTid);
+            DateTime? endTime = inputService.GetTimeOrInfinite("Slutttid (HH:mm eller 4 siffer, f.eks. 1500, eller blank for uendelig): ", "Sluttdato (dd.MM.yyyy eller 'i dag'): ", startTime);
 
             Console.Write("Hvem oppretter møtet? ");
-            string opprettetAv = Console.ReadLine()?.Trim() ?? "Ukjent";
+            string createdBy = Console.ReadLine()?.Trim() ?? "Ukjent";
 
             Console.Write("Kort beskrivelse: ");
-            string beskrivelse = Console.ReadLine()?.Trim() ?? "";
+            string description = Console.ReadLine()?.Trim() ?? "";
 
-            // Legg til deltakere
-            List<string> deltakere = new();
+            List<string> participants = new List<string>();
             Console.WriteLine("Skriv inn deltakere (trykk Enter for å stoppe): ");
             while (true)
             {
                 Console.Write("Deltaker: ");
-                string? deltaker = Console.ReadLine()?.Trim();
-                if (string.IsNullOrWhiteSpace(deltaker)) break;
-                deltakere.Add(deltaker);
+                Console.Write("Deltaker: ");
+                string participant = Console.ReadLine()?.Trim() ?? ""; // Ensure it's never null
+
+                if (string.IsNullOrWhiteSpace(participant))
+                    break;
+
+                participants.Add(participant);
+
+                if (string.IsNullOrWhiteSpace(participant)) break;
+                participants.Add(participant);
             }
 
-            var møte = new Meeting
+            Meeting meeting = new Meeting
             {
-                Id = møter.Count + 1,
-                Tittel = tittel,
-                StartTid = startTid,
-                SluttTid = sluttTid, // Kan være null hvis det ikke er satt en slutt
-                Sted = sted,
-                Beskrivelse = beskrivelse,
-                OpprettetAv = opprettetAv,
-                Deltakere = deltakere
+                Id = meetings.Count + 1,
+                Title = title,
+                StartTime = startTime,
+                EndTime = endTime,
+                Location = location,
+                Description = description,
+                CreatedBy = createdBy,
+                Participants = participants
             };
 
-            møter.Add(møte);
-            LoggTilFil();
-            Console.WriteLine($"\n✅ Møte '{tittel}' lagt til!\n");
+            meetings.Add(meeting);
+            storageService.SaveMeetings(meetings);
+            Console.WriteLine($"\n✅ Møte '{title}' lagt til!\n");
         }
 
-        private DateTime HentTidOgDato(string tidMelding, string datoMelding, DateTime? etterDato = null)
+        public void DeleteMeeting()
         {
-            while (true)
-            {
-                Console.Write(tidMelding);
-                string? tidInput = Console.ReadLine()?.Trim();
-
-                if (tidInput?.Length == 4 && int.TryParse(tidInput, out _))
-                {
-                    tidInput = tidInput.Insert(2, ":");
-                }
-
-                if (TimeSpan.TryParseExact(tidInput, "hh\\:mm", CultureInfo.InvariantCulture, out TimeSpan klokkeslett))
-                {
-                    Console.Write(datoMelding);
-                    string? datoInput = Console.ReadLine()?.Trim();
-
-                    if (string.IsNullOrWhiteSpace(datoInput) || datoInput.ToLower() == "i dag" || datoInput.ToLower() == "idag")
-                    {
-                        return DateTime.Today.Add(klokkeslett);
-                    }
-
-                    if (DateTime.TryParseExact(datoInput, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dato))
-                    {
-                        if (etterDato == null || dato.Add(klokkeslett) > etterDato)
-                        {
-                            return dato.Add(klokkeslett);
-                        }
-                    }
-                }
-            }
-        }
-
-        private DateTime? HentTidEllerUendelig(string tidMelding, string datoMelding, DateTime etterDato)
-        {
-            while (true)
-            {
-                Console.Write(tidMelding);
-                string? tidInput = Console.ReadLine()?.Trim();
-
-                if (string.IsNullOrWhiteSpace(tidInput)) return null; // Uendelig møte
-
-                if (tidInput.Length == 4 && int.TryParse(tidInput, out _))
-                {
-                    tidInput = tidInput.Insert(2, ":");
-                }
-
-                if (TimeSpan.TryParseExact(tidInput, "hh\\:mm", CultureInfo.InvariantCulture, out TimeSpan klokkeslett))
-                {
-                    Console.Write(datoMelding);
-                    string? datoInput = Console.ReadLine()?.Trim();
-
-                    if (string.IsNullOrWhiteSpace(datoInput) || datoInput.ToLower() == "i dag" || datoInput.ToLower() == "idag")
-                    {
-                        return DateTime.Today.Add(klokkeslett);
-                    }
-
-                    if (DateTime.TryParseExact(datoInput, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dato))
-                    {
-                        if (dato.Add(klokkeslett) > etterDato)
-                        {
-                            return dato.Add(klokkeslett);
-                        }
-                    }
-                }
-            }
-        }
-
-        public void SlettMøte()
-        {
-            LastInnFraFil();
-
-            if (møter.Count == 0)
+            if (meetings.Count == 0)
             {
                 Console.WriteLine("\n❌ Ingen møter å slette.");
                 return;
             }
 
             Console.WriteLine("\n📅 Velg et møte å slette:");
-            for (int i = 0; i < møter.Count; i++)
+            foreach (Meeting meeting in meetings)
             {
-                Console.WriteLine($"[{møter[i].Id}] {møter[i].Tittel} - {møter[i].StartTid:dd.MM.yyyy HH:mm}");
+                string endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig";
+                Console.WriteLine($"[{meeting.Id}] {meeting.Title} - {meeting.StartTime:dd.MM.yyyy HH:mm} til {endTime}");
             }
 
             Console.Write("\nSkriv ID på møtet du vil slette: ");
-            if (int.TryParse(Console.ReadLine(), out int møteId))
+            if (int.TryParse(Console.ReadLine(), out int meetingId))
             {
-                var møte = møter.Find(m => m.Id == møteId);
-                if (møte != null)
+                Meeting meeting = meetings.Find(m => m.Id == meetingId);
+                if (meeting != null)
                 {
-                    møter.Remove(møte);
-                    LoggTilFil();
-                    Console.WriteLine($"✅ Møte '{møte.Tittel}' er slettet.");
+                    Console.Write($"❗ Er du sikker på at du vil slette møtet '{meeting.Title}'? (ja / nei): ");
+                    string confirmation = Console.ReadLine()?.Trim().ToLower() ?? "";
+
+                    if (confirmation == "ja")
+                    {
+                        meetings.Remove(meeting);
+                        storageService.SaveMeetings(meetings);
+                        Console.WriteLine($"✅ Møte '{meeting.Title}' er slettet.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("❌ Sletting avbrutt.");
+                    }
                 }
                 else
                 {
                     Console.WriteLine("❌ Fant ikke møtet med den ID-en.");
                 }
             }
-            else
-            {
-                Console.WriteLine("❌ Ugyldig ID.");
-            }
         }
 
-        private void LoggTilFil()
+        public void DisplayMeetings()
         {
-            try
+            if (meetings.Count == 0)
             {
-                string jsonData = JsonSerializer.Serialize(møter, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(loggFil, jsonData);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"❌ Feil ved skriving til fil: {e.Message}");
-            }
-        }
-
-        public void VisMøter()
-        {
-            LastInnFraFil();
-
-            if (møter.Count == 0)
-            {
-                Console.WriteLine("\n❌ Ingen møter planlagt.\n");
+                Console.WriteLine("\n❌ Ingen møter planlagt.");
                 return;
             }
 
             Console.WriteLine("\n📅 Planlagte møter:");
-            foreach (var møte in møter)
+            foreach (Meeting meeting in meetings)
             {
-                string sluttTid = møte.SluttTid.HasValue ? møte.SluttTid.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig";
-                Console.WriteLine($"- [{møte.Id}] {møte.Tittel} på {møte.Sted} ({møte.StartTid:dd.MM.yyyy HH:mm} - {sluttTid})");
-            }
-        }
-
-        private void LastInnFraFil()
-        {
-            try
-            {
-                if (File.Exists(loggFil))
-                {
-                    string jsonData = File.ReadAllText(loggFil);
-                    var lagredeMøter = JsonSerializer.Deserialize<List<Meeting>>(jsonData);
-                    if (lagredeMøter != null)
-                    {
-                        møter.Clear();
-                        møter.AddRange(lagredeMøter);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"❌ Feil ved lesing av fil: {e.Message}");
+                string endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig";
+                Console.WriteLine($"- [{meeting.Id}] {meeting.Title} på {meeting.Location} ({meeting.StartTime:dd.MM.yyyy HH:mm} - {endTime})");
             }
         }
     }

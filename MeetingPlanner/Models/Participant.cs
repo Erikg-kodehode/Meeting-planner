@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace MeetingPlanner.Models
 {
     public class Participant
@@ -9,7 +6,5 @@ namespace MeetingPlanner.Models
         public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
-
-        public List<ParticipantMeeting> ParticipantMeetings { get; set; } = new();
     }
 }

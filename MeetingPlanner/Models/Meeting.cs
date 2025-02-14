@@ -6,21 +6,18 @@ namespace MeetingPlanner.Models
     public class Meeting
     {
         public int Id { get; set; }
-        public string Tittel { get; set; } = string.Empty;
-        public DateTime StartTid { get; set; }
-        public DateTime SluttTid { get; set; }
-        public string Sted { get; set; } = string.Empty;
-        public string Beskrivelse { get; set; } = string.Empty;
-
-        public string OpprettetAv { get; set; } = "Ukjent";
-        public DateTime OpprettetTidspunkt { get; private set; }
-
-        // Liste over deltakere
-        public List<string> Deltakere { get; set; } = new();
+        public string Title { get; set; } = string.Empty;
+        public DateTime StartTime { get; set; }
+        public DateTime? EndTime { get; set; } // Nullable for infinite meetings
+        public string Location { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string CreatedBy { get; set; } = "Ukjent";
+        public DateTime CreatedAt { get; private set; }
+        public List<string> Participants { get; set; } = new List<string>();
 
         public Meeting()
         {
-            OpprettetTidspunkt = DateTime.UtcNow;
+            CreatedAt = DateTime.UtcNow;
         }
     }
 }
