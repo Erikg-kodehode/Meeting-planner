@@ -12,17 +12,42 @@ namespace MeetingPlanner.Services
 
         public List<Meeting> LoadMeetings()
         {
-            if (File.Exists(logFile))
+            try
             {
-                string jsonData = File.ReadAllText(logFile);
-                return JsonSerializer.Deserialize<List<Meeting>>(jsonData) ?? new List<Meeting>();
+                if (File.Exists(logFile))
+                {
+                    string jsonData = File.ReadAllText(logFile);
+                    List<Meeting> storedMeetings = JsonSerializer.Deserialize<List<Meeting>>(jsonData) ?? new List<Meeting>();
+
+                    Console.WriteLine("\n🔍 Laster inn lagrede møter:");
+                    foreach (var meeting in storedMeetings)
+                    {
+                        Console.WriteLine($"[{meeting.Id}] {meeting.Title} med {meeting.Participants.Count} deltakere");
+                    }
+                    return storedMeetings;
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine($"❌ Feil ved lesing av fil: {e.Message}");
+            }
+
             return new List<Meeting>();
         }
 
         public void SaveMeetings(List<Meeting> meetings)
         {
-            File.WriteAllText(logFile, JsonSerializer.Serialize(meetings, new JsonSerializerOptions { WriteIndented = true }));
+            try
+            {
+                string jsonData = JsonSerializer.Serialize(meetings, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(logFile, jsonData);
+
+                Console.WriteLine("\n📅 ✅ Lagt til i Kalender.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"❌ Feil ved skriving til fil: {e.Message}");
+            }
         }
     }
 }

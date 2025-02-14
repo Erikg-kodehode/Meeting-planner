@@ -1,1 +1,78 @@
-[]
+[
+  {
+    "Id": 1,
+    "Title": "Rubens Kalkulator",
+    "StartTime": "2025-02-14T09:00:00+01:00",
+    "EndTime": null,
+    "Location": "Bernts Hode",
+    "Description": "Hjulene p\u00E5 bussen de g\u00E5r rundt og rundt",
+    "CreatedBy": "Ruben",
+    "CreatedAt": "2025-02-14T09:10:15.889693Z",
+    "Participants": [
+      "1 hjernecelle",
+      "2 hjernecelle",
+      "3 hjernecelle",
+      "Hjulene p\u00E5 bussen",
+      "Ruben",
+      "Bernt"
+    ]
+  },
+  {
+    "Id": 2,
+    "Title": "Nav",
+    "StartTime": "2025-02-14T15:00:00+01:00",
+    "EndTime": null,
+    "Location": "Nav Larvik",
+    "Description": "Veileder samtale",
+    "CreatedBy": "",
+    "CreatedAt": "2025-02-14T09:10:15.8980971Z",
+    "Participants": [
+      "Erik",
+      "Veileder"
+    ]
+  },
+  {
+    "Id": 3,
+    "Title": "Snom\u00E5king",
+    "StartTime": "2025-02-14T14:00:00+01:00",
+    "EndTime": null,
+    "Location": "Sandefjord",
+    "Description": "Ubrukelig",
+    "CreatedBy": "Sandefjord Kommune",
+    "CreatedAt": "2025-02-14T09:10:15.8981414Z",
+    "Participants": [
+      "Bil 1",
+      "Bil 2",
+      "Traktor 4",
+      "Lastebil 7"
+    ]
+  },
+  {
+    "Id": 4,
+    "Title": "bernts avskjed",
+    "StartTime": "2025-02-14T10:00:00+01:00",
+    "EndTime": null,
+    "Location": "nav sande",
+    "Description": "fyken",
+    "CreatedBy": "ruben",
+    "CreatedAt": "2025-02-14T09:11:23.1303991Z",
+    "Participants": [
+      "bernt",
+      "ruben"
+    ]
+  },
+  {
+    "Id": 5,
+    "Title": "bernt p\u00E5 verksted",
+    "StartTime": "2025-02-14T10:00:00+01:00",
+    "EndTime": null,
+    "Location": "kina",
+    "Description": "ikke fikse bilen til bernt",
+    "CreatedBy": "en kineser",
+    "CreatedAt": "2025-02-14T09:14:28.3009906Z",
+    "Participants": [
+      "bernt",
+      "kinamann"
+    ]
+  }
+]

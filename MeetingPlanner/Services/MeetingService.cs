@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MeetingPlanner.Models;
+using MeetingPlanner.Services;
 
 namespace MeetingPlanner.Services
 {
@@ -27,9 +28,16 @@ namespace MeetingPlanner.Services
             Console.Write("Sted: ");
             string location = Console.ReadLine()?.Trim() ?? "";
 
-            DateTime startTime = inputService.GetTimeAndDate("Starttid (HH:mm eller 4 siffer, f.eks. 1400): ", "Startdato (dd.MM.yyyy eller 'i dag'): ");
+            DateTime startTime = inputService.GetTimeAndDate(
+                "Starttid (HH:mm eller 4 siffer, f.eks. 1400, eller blank for nå +5 min): ",
+                "Startdato (dd.MM.yyyy eller 'i dag'): "
+            );
 
-            DateTime? endTime = inputService.GetTimeOrInfinite("Slutttid (HH:mm eller 4 siffer, f.eks. 1500, eller blank for uendelig): ", "Sluttdato (dd.MM.yyyy eller 'i dag'): ", startTime);
+            DateTime? endTime = inputService.GetTimeOrInfinite(
+                "Slutttid (HH:mm eller 4 siffer, f.eks. 1500, eller blank for uendelig): ",
+                "Sluttdato (dd.MM.yyyy eller 'i dag'): ",
+                startTime
+            );
 
             Console.Write("Hvem oppretter møtet? ");
             string createdBy = Console.ReadLine()?.Trim() ?? "Ukjent";
@@ -42,14 +50,7 @@ namespace MeetingPlanner.Services
             while (true)
             {
                 Console.Write("Deltaker: ");
-                Console.Write("Deltaker: ");
-                string participant = Console.ReadLine()?.Trim() ?? ""; // Ensure it's never null
-
-                if (string.IsNullOrWhiteSpace(participant))
-                    break;
-
-                participants.Add(participant);
-
+                string participant = Console.ReadLine()?.Trim() ?? "";
                 if (string.IsNullOrWhiteSpace(participant)) break;
                 participants.Add(participant);
             }
@@ -68,7 +69,76 @@ namespace MeetingPlanner.Services
 
             meetings.Add(meeting);
             storageService.SaveMeetings(meetings);
-            Console.WriteLine($"\n✅ Møte '{title}' lagt til!\n");
+            Console.WriteLine($"\n✅ Møte '{title}' lagt til i kalenderen!\n");
+        }
+
+        public void DisplayMeetings()
+        {
+            if (meetings.Count == 0)
+            {
+                Console.WriteLine("\n❌ Ingen møter planlagt.");
+                return;
+            }
+
+            Console.WriteLine("\n📅 Planlagte møter:");
+            foreach (Meeting meeting in meetings)
+            {
+                string endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig";
+                Console.WriteLine($"- [{meeting.Id}] {meeting.Title} på {meeting.Location} ({meeting.StartTime:dd.MM.yyyy HH:mm} - {endTime})");
+            }
+        }
+
+        public void ViewMeetingDetails()
+        {
+            if (meetings.Count == 0)
+            {
+                Console.WriteLine("\n❌ Ingen møter planlagt.");
+                return;
+            }
+
+            Console.WriteLine("\n📅 Planlagte møter:");
+            foreach (Meeting meeting in meetings)
+            {
+                string endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig";
+                Console.WriteLine($"[{meeting.Id}] {meeting.Title} på {meeting.Location} ({meeting.StartTime:dd.MM.yyyy HH:mm} - {endTime})");
+            }
+
+            Console.Write("\n🔍 Skriv ID på møtet du vil se detaljer for: ");
+            if (int.TryParse(Console.ReadLine(), out int meetingId))
+            {
+                Meeting meeting = meetings.Find(m => m.Id == meetingId);
+                if (meeting != null)
+                {
+                    Console.WriteLine("\n📜 Møtedetaljer:");
+                    Console.WriteLine($"📌 Tittel: {meeting.Title}");
+                    Console.WriteLine($"📍 Sted: {meeting.Location}");
+                    Console.WriteLine($"🕒 Starttid: {meeting.StartTime:dd.MM.yyyy HH:mm}");
+                    Console.WriteLine($"⏳ Slutttid: {(meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig")}");
+                    Console.WriteLine($"📝 Beskrivelse: {meeting.Description}");
+                    Console.WriteLine($"👤 Opprettet av: {meeting.CreatedBy}");
+
+                    if (meeting.Participants.Count > 0)
+                    {
+                        Console.WriteLine("👥 Deltakere:");
+                        foreach (string participant in meeting.Participants)
+                        {
+                            Console.WriteLine($"- {participant}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("👥 Ingen deltakere registrert.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("❌ Fant ikke møtet med den ID-en.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("❌ Ugyldig ID.");
+            }
         }
 
         public void DeleteMeeting()
@@ -110,22 +180,6 @@ namespace MeetingPlanner.Services
                 {
                     Console.WriteLine("❌ Fant ikke møtet med den ID-en.");
                 }
-            }
-        }
-
-        public void DisplayMeetings()
-        {
-            if (meetings.Count == 0)
-            {
-                Console.WriteLine("\n❌ Ingen møter planlagt.");
-                return;
-            }
-
-            Console.WriteLine("\n📅 Planlagte møter:");
-            foreach (Meeting meeting in meetings)
-            {
-                string endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("dd.MM.yyyy HH:mm") : "Uendelig";
-                Console.WriteLine($"- [{meeting.Id}] {meeting.Title} på {meeting.Location} ({meeting.StartTime:dd.MM.yyyy HH:mm} - {endTime})");
             }
         }
     }
