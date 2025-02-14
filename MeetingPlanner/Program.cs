@@ -5,16 +5,15 @@ class Program
 {
     static void Main()
     {
-        MeetingService meetingService = new MeetingService();
+        MeetingService meetingService = new MeetingService(); // ✅ No longer using `using`
 
         while (true)
         {
             Console.WriteLine("\n===== MØTEPLANLEGGER =====");
             Console.WriteLine("1. Legg til et møte");
             Console.WriteLine("2. Vis alle møter");
-            Console.WriteLine("3. Vis detaljer for et møte");
-            Console.WriteLine("4. Slett et møte");
-            Console.WriteLine("5. Avslutt");
+            Console.WriteLine("3. Slett et møte");
+            Console.WriteLine("4. Avslutt");
             Console.Write("Velg et alternativ: ");
 
             string choice = Console.ReadLine()?.Trim() ?? "";
@@ -28,13 +27,10 @@ class Program
                     meetingService.DisplayMeetings();
                     break;
                 case "3":
-                    meetingService.ViewMeetingDetails();
-                    break;
-                case "4":
                     meetingService.DeleteMeeting();
                     break;
-                case "5":
-                    Console.WriteLine("\n👋 Ha en fin dag! ");
+                case "4":
+                    Console.WriteLine("\n👋 Ha en fin dag!");
                     return;
                 default:
                     Console.WriteLine("\n❌ Ugyldig valg! Prøv igjen.");
