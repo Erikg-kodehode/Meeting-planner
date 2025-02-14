@@ -1,24 +1,25 @@
-# 📅 Møteplanlegger CLI
+# 📅 Møteplanlegger (Meeting Planner)
 
-Dette er et konsollbasert møteplanleggingsverktøy skrevet i **C#**.  
-Programmet lar deg **legge til møter, vise møter, slette møter og lagre data til en JSON-fil**.
+En enkel CLI-basert møteplanlegger laget med **C#**, **.NET**, og **Entity Framework Core (SQLite)**.  
+Brukere kan **legge til, vise, og slette møter**, lagret i en **SQL-database**.
+
+---
 
 ## 🚀 Funksjoner
 
-✅ Legg til møter med:
+- **Legg til møter** (automatisk håndtering av tid og dato)
+- **Vis alle planlagte møter** (inkluderer detaljer)
+- **Slett møter** fra databasen
+- **Lagring i en SQLite-database** via **Entity Framework Core**
+- **Brukervennlig CLI-grensesnitt**
 
-- **Tittel, sted, starttid og eventuelt slutttid**
-- **Deltakere (flere kan legges til)**
-- **Beskrivelse**
+---
 
-✅ **Slutttid kan være uendelig** (møtet avsluttes ikke automatisk).  
-✅ **Lagring i JSON** (`møter.json`) slik at data ikke går tapt.  
-✅ **Mulighet for å slette møter** (med bekreftelse).
+## 🛠 Installasjon
 
-## 🛠️ Installasjon og kjøring
+### 1️⃣ Klon prosjektet
 
-1. **Klon prosjektet** fra GitHub:
-   ```sh
-   git clone https://github.com/ditt-brukernavn/ditt-repo.git
-   cd ditt-repo
-   ```
+```sh
+git clone https://github.com/DITT_REPO/MeetingPlanner.git
+cd MeetingPlanner
+```
