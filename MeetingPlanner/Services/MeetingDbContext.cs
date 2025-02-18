@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using MeetingPlanner.Models;
+#nullable disable
+
 
 namespace MeetingPlanner.Services
 {

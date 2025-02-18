@@ -4,6 +4,8 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using MeetingPlanner.Models;
 using System.Globalization;
+#nullable disable
+
 
 namespace MeetingPlanner.Services
 {
@@ -13,37 +15,40 @@ namespace MeetingPlanner.Services
         {
             using var dbContext = new MeetingDbContext();
 
-            Console.Write("\n📌 Skriv inn tittel for møtet: ");
-            var title = Console.ReadLine()?.Trim() ?? "Uten tittel";
+            Console.Write("\n📌 Skriv inn møtetittel: ");
+            string title = Console.ReadLine()?.Trim() ?? "Uten tittel";
 
-            Console.Write("📍 Sted: ");
-            var location = Console.ReadLine()?.Trim() ?? "Ikke spesifisert";
+            Console.Write("📍 Hvor skal møtet holdes? ");
+            string location = Console.ReadLine()?.Trim() ?? "Ikke spesifisert";
 
-            Console.Write("⏰ Starttid (HH:mm eller blank for nå +5 min): ");
-            var startTimeInput = Console.ReadLine()?.Trim();
-            var startTime = string.IsNullOrWhiteSpace(startTimeInput) ? DateTime.Now.AddMinutes(5) : ParseTimeInput(startTimeInput);
+            Console.Write("⏰ Starttid (HH:mm, 4 siffer, 1-3 siffer = min fra nå, blank = +5 min): ");
+            string startTimeInput = Console.ReadLine()?.Trim();
+            DateTime startTime = ParseTimeInput(startTimeInput);
+            Console.WriteLine($"   ➝ 📆 Starttid satt til: {startTime:HH:mm}");
 
-            Console.Write("🕘 Slutttid (HH:mm eller blank for uendelig): ");
-            var endTimeInput = Console.ReadLine()?.Trim();
-            var endTime = string.IsNullOrWhiteSpace(endTimeInput) ? (DateTime?)null : ParseTimeInput(endTimeInput);
+            Console.Write("🕘 Slutttid (HH:mm, 4 siffer, 1-3 siffer = min fra nå, blank = ingen): ");
+            string endTimeInput = Console.ReadLine()?.Trim();
+            DateTime? endTime = string.IsNullOrWhiteSpace(endTimeInput) ? null : ParseTimeInput(endTimeInput);
+            Console.WriteLine($"   ➝ 📆 Slutttid satt til: {(endTime.HasValue ? endTime.Value.ToString("HH:mm") : "Ingen sluttid")}");
+
 
             Console.Write("👤 Hvem oppretter møtet? ");
-            var createdBy = Console.ReadLine()?.Trim() ?? "Ukjent";
+            string createdBy = Console.ReadLine()?.Trim() ?? "Ukjent";
 
-            Console.Write("📝 Kort beskrivelse: ");
-            var description = Console.ReadLine()?.Trim() ?? "Ingen beskrivelse";
+            Console.Write("📝 Beskrivelse av møtet: ");
+            string description = Console.ReadLine()?.Trim() ?? "Ingen beskrivelse";
 
-            var participants = new List<string>();
-            Console.WriteLine("👥 Skriv inn deltakere (trykk Enter for å stoppe):");
+            List<string> participants = new List<string>();
+            Console.WriteLine("\n👥 Legg til deltakere (Trykk Enter for å stoppe):");
             while (true)
             {
                 Console.Write("Deltaker: ");
-                var participant = Console.ReadLine()?.Trim();
+                string participant = Console.ReadLine()?.Trim();
                 if (string.IsNullOrWhiteSpace(participant)) break;
                 participants.Add(participant);
             }
 
-            var newMeeting = new Meeting
+            Meeting newMeeting = new Meeting
             {
                 Title = title,
                 Location = location,
@@ -56,7 +61,7 @@ namespace MeetingPlanner.Services
 
             dbContext.Meetings.Add(newMeeting);
             dbContext.SaveChanges();
-            Console.WriteLine("\n✅ 📅 Møte lagt til kalenderen!");
+            Console.WriteLine("\n✅ 📅 Møtet er lagt til i kalenderen!\n");
         }
 
         public void DisplayMeetings()
@@ -73,7 +78,7 @@ namespace MeetingPlanner.Services
             Console.WriteLine("\n📅 Planlagte møter:");
             foreach (var meeting in meetings)
             {
-                var endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("HH:mm") : "Uendelig";
+                var endTime = meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("HH:mm") : "Ingen SluttTid";
                 Console.WriteLine($"[{meeting.Id}] {meeting.Title} - {meeting.StartTime:HH:mm} til {endTime}");
             }
         }
@@ -99,7 +104,7 @@ namespace MeetingPlanner.Services
                     Console.WriteLine($"📌 Tittel: {meeting.Title}");
                     Console.WriteLine($"📍 Sted: {meeting.Location}");
                     Console.WriteLine($"⏰ Starttid: {meeting.StartTime:HH:mm}");
-                    Console.WriteLine($"🕘 Slutttid: {(meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("HH:mm") : "Uendelig")}");
+                    Console.WriteLine($"🕘 Slutttid: {(meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("HH:mm") : "Ingen Slutttid")}");
                     Console.WriteLine($"👤 Opprettet av: {meeting.CreatedBy}");
                     Console.WriteLine($"📝 Beskrivelse: {meeting.Description}");
 
@@ -180,48 +185,71 @@ namespace MeetingPlanner.Services
                     return;
                 }
 
+                // 📋 Vis møtedetaljer før redigering
+                Console.WriteLine("\n📋 Gjeldende møtedetaljer:");
+                Console.WriteLine($"📌 {meeting.Title} ({meeting.StartTime:HH:mm} ➝ {meeting.EndTime?.ToString("HH:mm") ?? "Ingen sluttid"})");
+                Console.WriteLine($"📍 {meeting.Location}");
+                Console.WriteLine($"👤 Opprettet av: {meeting.CreatedBy}");
+                Console.WriteLine($"📝 {meeting.Description}");
+
+                if (meeting.Participants.Any())
+                {
+                    Console.WriteLine("👥 Deltakere:");
+                    foreach (var participant in meeting.Participants)
+                    {
+                        Console.WriteLine($"- {participant}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("👥 Ingen deltakere registrert.");
+                }
+
                 while (true)
                 {
-                    Console.WriteLine("\n🔹 Hva vil du redigere?");
-                    Console.WriteLine("1. Tittel");
-                    Console.WriteLine("2. Sted");
-                    Console.WriteLine("3. Starttid");
-                    Console.WriteLine("4. Slutttid");
-                    Console.WriteLine("5. Beskrivelse");
-                    Console.WriteLine("6. Administrer deltakere");
-                    Console.WriteLine("7. Lagre og avslutt");
-                    Console.Write("Velg et alternativ: ");
+                    Console.WriteLine("\nHva vil du redigere?");
+                    Console.WriteLine("[1] Tittel");
+                    Console.WriteLine("[2] Sted");
+                    Console.WriteLine("[3] Starttid");
+                    Console.WriteLine("[4] Slutttid");
+                    Console.WriteLine("[5] Beskrivelse");
+                    Console.WriteLine("[6] Administrer deltakere");
+                    Console.WriteLine("[7] Lagre og avslutt");
+                    Console.Write("👉 Velg et alternativ: ");
 
-                    var choice = Console.ReadLine()?.Trim();
+                    string choice = Console.ReadLine()?.Trim();
                     switch (choice)
                     {
                         case "1":
                             Console.Write("✏️ Ny tittel: ");
-                            var newTitle = Console.ReadLine()?.Trim();
+                            string newTitle = Console.ReadLine()?.Trim();
                             if (!string.IsNullOrWhiteSpace(newTitle)) meeting.Title = newTitle;
                             break;
 
                         case "2":
                             Console.Write("📍 Nytt sted: ");
-                            var newLocation = Console.ReadLine()?.Trim();
+                            string newLocation = Console.ReadLine()?.Trim();
                             if (!string.IsNullOrWhiteSpace(newLocation)) meeting.Location = newLocation;
                             break;
 
                         case "3":
-                            Console.Write("⏰ Ny starttid (HH:mm eller blank for nå +5 min): ");
-                            var newStartTime = Console.ReadLine()?.Trim();
+                            Console.Write("⏰ Ny starttid (HH:mm, 4 siffer, 1-3 siffer = min fra nå, blank = +5 min): ");
+                            string newStartTime = Console.ReadLine()?.Trim();
                             meeting.StartTime = string.IsNullOrWhiteSpace(newStartTime) ? DateTime.Now.AddMinutes(5) : ParseTimeInput(newStartTime);
+                            Console.WriteLine($"   ➝ 📆 Starttid oppdatert til: {meeting.StartTime:HH:mm}");
                             break;
 
                         case "4":
-                            Console.Write("🕘 Ny slutttid (HH:mm eller blank for uendelig): ");
-                            var newEndTime = Console.ReadLine()?.Trim();
-                            meeting.EndTime = string.IsNullOrWhiteSpace(newEndTime) ? (DateTime?)null : ParseTimeInput(newEndTime);
+                            Console.Write("🕘 Ny slutttid (HH:mm, 4 siffer, 1-3 siffer = min fra nå, blank = ingen): ");
+                            string newEndTime = Console.ReadLine()?.Trim();
+                            meeting.EndTime = string.IsNullOrWhiteSpace(newEndTime) ? null : ParseTimeInput(newEndTime);
+                            Console.WriteLine($"   ➝ 📆 Slutttid oppdatert til: {(meeting.EndTime.HasValue ? meeting.EndTime.Value.ToString("HH:mm") : "Ingen sluttid")}");
                             break;
+
 
                         case "5":
                             Console.Write("📝 Ny beskrivelse: ");
-                            var newDescription = Console.ReadLine()?.Trim();
+                            string newDescription = Console.ReadLine()?.Trim();
                             if (!string.IsNullOrWhiteSpace(newDescription)) meeting.Description = newDescription;
                             break;
 
@@ -230,6 +258,7 @@ namespace MeetingPlanner.Services
                             break;
 
                         case "7":
+                            dbContext.Entry(meeting).State = EntityState.Modified;
                             dbContext.SaveChanges();
                             Console.WriteLine("\n✅ Endringer lagret!");
                             return;
@@ -245,6 +274,7 @@ namespace MeetingPlanner.Services
                 Console.WriteLine("❌ Ugyldig ID. Prøv igjen.");
             }
         }
+
         private void ManageParticipants(Meeting meeting)
         {
             while (true)
@@ -309,12 +339,36 @@ namespace MeetingPlanner.Services
         }
 
 
-
         private DateTime ParseTimeInput(string timeInput)
         {
-            return string.IsNullOrWhiteSpace(timeInput) ? DateTime.Now.AddMinutes(5) :
-                   DateTime.TryParseExact(timeInput, "HH:mm", null, DateTimeStyles.None, out var parsedTime) ? parsedTime :
-                   DateTime.Now.AddMinutes(5);
+            if (string.IsNullOrWhiteSpace(timeInput))
+            {
+                return DateTime.Now.AddMinutes(5); // Default to now +5 min
+            }
+
+            if (DateTime.TryParseExact(timeInput, "HH:mm", null, System.Globalization.DateTimeStyles.None, out DateTime exactTime))
+            {
+                return exactTime; // Keeps "14:00" as "14:00"
+            }
+
+            if (int.TryParse(timeInput, out int numericInput))
+            {
+                if (timeInput.Length == 4) // 4-digit number like "1400"
+                {
+                    timeInput = timeInput.Insert(2, ":"); // Convert "1400" → "14:00"
+                    if (DateTime.TryParseExact(timeInput, "HH:mm", null, System.Globalization.DateTimeStyles.None, out DateTime parsedTime))
+                    {
+                        return parsedTime;
+                    }
+                }
+                else if (timeInput.Length >= 1 && timeInput.Length <= 3) // 1-3 digits = minutes from now
+                {
+                    return DateTime.Now.AddMinutes(numericInput);
+                }
+            }
+
+            Console.WriteLine("❌ Ugyldig tidsformat! Bruk 'HH:mm', 4 siffer (1400), eller minutter fra nå.");
+            return ParseTimeInput(Console.ReadLine()?.Trim() ?? "");
         }
     }
 }
