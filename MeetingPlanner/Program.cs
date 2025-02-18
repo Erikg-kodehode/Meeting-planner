@@ -5,37 +5,37 @@ class Program
 {
     static void Main()
     {
-        MeetingService MeetingService = new MeetingService();
+        var meetingService = new MeetingService(); // Use camelCase for variable name
 
         while (true)
         {
-            Console.WriteLine("\n===== MØTEPLANLEGGER =====");
-            Console.WriteLine("1. Legg til et møte");
-            Console.WriteLine("2. Vis alle møter");
-            Console.WriteLine("3. Se detaljer for et møte");
-            Console.WriteLine("4. Slett et møte");
-            Console.WriteLine("5. Rediger et møte");
-            Console.WriteLine("6. Avslutt");
-            Console.Write("Velg et alternativ: ");
+            Console.WriteLine("\n===== 📅 MØTEPLANLEGGER =====");
+            Console.WriteLine("1. ➕ Legg til et møte");
+            Console.WriteLine("2. 📜 Vis alle møter");
+            Console.WriteLine("3. 🔍 Se detaljer for et møte");
+            Console.WriteLine("4. ❌ Slett et møte");
+            Console.WriteLine("5. ✏️ Rediger et møte");
+            Console.WriteLine("6. 🚪 Avslutt");
+            Console.Write("👉 Velg et alternativ: ");
 
-            string choice = Console.ReadLine()?.Trim() ?? "";
+            var choice = Console.ReadLine()?.Trim() ?? "";
 
             switch (choice)
             {
                 case "1":
-                    MeetingService.AddMeeting();
+                    meetingService.AddMeeting();
                     break;
                 case "2":
-                    MeetingService.DisplayMeetings();
+                    meetingService.DisplayMeetings();
                     break;
                 case "3":
-                    MeetingService.ViewMeetingDetails();
+                    meetingService.ViewMeetingDetails();
                     break;
                 case "4":
-                    MeetingService.DeleteMeeting();
+                    meetingService.DeleteMeeting();
                     break;
                 case "5":
-                    MeetingService.EditMeeting();  // ✅ Ensuring EditMeeting is referenced correctly
+                    meetingService.EditMeeting();
                     break;
                 case "6":
                     Console.WriteLine("\n👋 Ha en fin dag!");
